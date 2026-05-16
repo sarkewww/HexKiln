@@ -1,12 +1,10 @@
-"""
-HexKiln Calculate Tool
-Byte-level hex operations: XOR, ADD, SUB
-Endian swap (LE ↔ BE)
-Adaptive output layout: landscape ↔ portrait
-i18n: English / 简体中文 (auto-detect + toggle)
-External lang overrides: place lang/en.json or lang/zh_CN.json next to this file
-Requires: Python 3.10+ — stdlib only (tkinter built-in)
-"""
+# HexKiln Calculate Tool
+# Byte-level hex operations: XOR, ADD, SUB
+# Endian swap (LE ↔ BE)
+# Adaptive output layout: landscape ↔ portrait
+# i18n: English / 简体中文 (auto-detect + toggle)
+# External lang overrides: place lang/en.json or lang/zh_CN.json next to this file
+# Requires: Python 3.10+ — stdlib only (tkinter built-in)
 
 import tkinter as tk
 import sys
@@ -158,7 +156,7 @@ for _code in list(_STRINGS):
 
 
 def _detect_lang() -> str:
-    """Return 'zh_CN' when OS locale is Chinese, else 'en'."""
+    # Return 'zh_CN' when OS locale is Chinese, else 'en'
     try:
         code, _ = locale.getdefaultlocale()
         if code and code.lower().startswith("zh"):
@@ -171,7 +169,7 @@ def _detect_lang() -> str:
 # Core logic
 
 def parse_hex(s: str) -> list[int] | None:
-    """Parse hex string to byte list. Accepts spaces, commas, 0x prefix."""
+    # Parse hex string to byte list. Accepts spaces, commas, 0x prefix.
     s = s.replace(" ", "").replace(",", "").replace("0x", "").replace("0X", "")
     if not s:
         return None
@@ -184,7 +182,7 @@ def parse_hex(s: str) -> list[int] | None:
 
 
 def parse_key(s: str) -> int | None:
-    """Parse key string to integer (hex or decimal)."""
+    # Parse key string to integer (hex or decimal)
     s = s.strip()
     if not s:
         return None
@@ -198,12 +196,12 @@ def parse_key(s: str) -> int | None:
 
 
 def endian_swap(data: list[int]) -> list[int]:
-    """Reverse byte order (LE↔BE)."""
+    # Reverse byte order (LE↔BE)
     return list(reversed(data))
 
 
 def op_bytewise(data: list[int], key: int, operation: str) -> list[int]:
-    """Apply operation byte-by-byte with key masked to 0xFF."""
+    # Apply operation byte-by-byte with key masked to 0xFF
     k = key & 0xFF
     result: list[int] = []
     for b in data:
@@ -215,7 +213,7 @@ def op_bytewise(data: list[int], key: int, operation: str) -> list[int]:
 
 
 def op_direct(data: list[int], key: int, operation: str) -> list[int]:
-    """Apply operation on the whole integer value."""
+    # Apply operation on the whole integer value
     length  = len(data)
     val     = int.from_bytes(bytes(data), "big")
     max_val = (1 << (length * 8)) - 1
@@ -227,19 +225,19 @@ def op_direct(data: list[int], key: int, operation: str) -> list[int]:
 
 
 def bytes_to_hex(data: list[int]) -> str:
-    """Format bytes as hex string."""
+    # Format bytes as hex string
     return " ".join(f"{b:02X}" for b in data)
 
 
 def bytes_to_dec(data: list[int], combined_fmt: str) -> str:
-    """Format bytes as decimal with combined BE int."""
+    # Format bytes as decimal with combined BE int
     per_byte = " ".join(str(b) for b in data)
     combined = int.from_bytes(bytes(data), "big")
     return f"{per_byte}\n{combined_fmt.format(combined)}"
 
 
 def bytes_to_ascii(data: list[int], printable_fmt: str) -> str:
-    """Format bytes as ASCII with non-printable shown as '·'."""
+    # Format bytes as ASCII with non-printable shown as '·'
     chars     = "".join(chr(b) if 32 <= b < 127 else "·" for b in data)
     printable = sum(1 for b in data if 32 <= b < 127)
     return f"{chars}\n{printable_fmt.format(printable, len(data))}"
@@ -248,7 +246,7 @@ def bytes_to_ascii(data: list[int], printable_fmt: str) -> str:
 # UI helpers
 
 class HoverButton(tk.Label):
-    """Flat clickable label with hover highlight."""
+    # Flat clickable label with hover highlight
 
     def __init__(self, parent, text, command,
                  bg_normal=C["btn_bg"], bg_hover=C["btn_hover"],
@@ -265,7 +263,7 @@ class HoverButton(tk.Label):
 
 
 def hsep(parent: tk.Widget, colour: str = C["border"]) -> tk.Frame:
-    """Create horizontal separator line."""
+    # Create horizontal separator line
     f = tk.Frame(parent, bg=colour, height=1)
     f.pack(fill="x")
     return f
@@ -309,22 +307,22 @@ class HexForgeTool(tk.Tk):
     # Translation helpers
 
     def T(self, key: str, *args) -> str:
-        """Get translated string for current language."""
+        # Get translated string for current language
         s = _STRINGS.get(self._lang, _STRINGS["en"]).get(key, key)
         return s.format(*args) if args else s
 
     def _reg(self, widget: tk.Widget, key: str, kwarg: str = "text") -> tk.Widget:
-        """Register widget for language refresh."""
+        # Register widget for language refresh
         self._i18n_refs.append((widget, key, kwarg))
         return widget
 
     def _switch_lang(self):
-        """Toggle between English and Chinese."""
+        # Toggle between English and Chinese
         self._lang = "zh_CN" if self._lang == "en" else "en"
         self._apply_lang()
 
     def _apply_lang(self):
-        """Apply current language to all registered widgets."""
+        # Apply current language to all registered widgets
         self.title(self.T("win_title"))
 
         for widget, key, kwarg in self._i18n_refs:
@@ -355,12 +353,12 @@ class HexForgeTool(tk.Tk):
     # Adaptive layout
 
     def _center_window(self, w: int, h: int):
-        """Center window on screen."""
+        # Center window on screen
         sx, sy = self.winfo_screenwidth(), self.winfo_screenheight()
         self.geometry(f"{w}x{h}+{(sx - w) // 2}+{(sy - h) // 2}")
 
     def _on_resize_debounced(self, event: tk.Event):
-        """Debounced resize handler for layout switching."""
+        # Debounced resize handler for layout switching
         if event.widget is not self:
             return
         if self._resize_job:
@@ -370,14 +368,14 @@ class HexForgeTool(tk.Tk):
         )
 
     def _check_layout(self, w: int, h: int):
-        """Switch layout mode based on aspect ratio."""
+        # Switch layout mode based on aspect ratio
         new_mode = "landscape" if w >= h else "portrait"
         if new_mode != self._layout_mode:
             self._layout_mode = new_mode
             self._relayout_outputs()
 
     def _relayout_outputs(self):
-        """Re-arrange output panels in grid layout."""
+        # Re-arrange output panels in grid layout
         if not self._out_panels:
             return
 
@@ -397,7 +395,7 @@ class HexForgeTool(tk.Tk):
     # UI construction
 
     def _build_ui(self):
-        """Build the complete UI."""
+        # Build the complete UI
         self._build_titlebar()
         hsep(self)
         content = tk.Frame(self, bg=C["bg"])
@@ -409,7 +407,7 @@ class HexForgeTool(tk.Tk):
         self.title(self.T("win_title"))
 
     def _build_titlebar(self):
-        """Build title bar with app title and language toggle."""
+        # Build title bar with app title and language toggle
         bar = tk.Frame(self, bg=C["bg"], pady=10)
         bar.pack(fill="x", padx=20)
 
@@ -447,7 +445,7 @@ class HexForgeTool(tk.Tk):
         self._reg(self._lang_btn, "lang_btn")
 
     def _build_input_section(self, parent: tk.Frame):
-        """Build hex input and key input area."""
+        # Build hex input and key input area
         frame = tk.Frame(parent, bg=C["panel"],
                          highlightbackground=C["border"],
                          highlightthickness=1)
@@ -504,7 +502,7 @@ class HexForgeTool(tk.Tk):
         ).pack(side="left", padx=(8, 0))
 
     def _build_controls(self, parent: tk.Frame):
-        """Build operation, mode selection and action buttons."""
+        # Build operation, mode selection and action buttons
         ctrl = tk.Frame(parent, bg=C["bg"])
         ctrl.pack(fill="x", pady=(0, 10))
 
@@ -575,7 +573,7 @@ class HexForgeTool(tk.Tk):
         self._reg(self._btn_clear, "btn_clear")
 
     def _build_output_section(self, parent: tk.Frame):
-        """Build output panels (HEX, DEC, ASCII)."""
+        # Build output panels (HEX, DEC, ASCII)
         self._out_frame = tk.Frame(parent, bg=C["bg"])
         self._out_frame.pack(fill="both", expand=True, pady=(0, 10))
 
@@ -629,7 +627,7 @@ class HexForgeTool(tk.Tk):
         self._relayout_outputs()
 
     def _build_status_bar(self):
-        """Build status bar at bottom."""
+        # Build status bar at bottom
         hsep(self)
         row = tk.Frame(self, bg=C["bg"], pady=4)
         row.pack(fill="x", padx=20)
@@ -651,7 +649,7 @@ class HexForgeTool(tk.Tk):
     # Placeholder
 
     def _setup_placeholder(self, widget: tk.Text, text: str):
-        """Setup placeholder text behavior."""
+        # Setup placeholder text behavior
         widget._placeholder_text = text
         widget.insert("1.0", text)
         widget.config(fg=C["dim"])
@@ -671,7 +669,7 @@ class HexForgeTool(tk.Tk):
         widget.bind("<FocusOut>", on_out)
 
     def _get_hex_input(self) -> str:
-        """Get actual hex input, ignoring placeholder text."""
+        # Get actual hex input, ignoring placeholder text
         raw = self.hex_input.get("1.0", "end-1c")
         ph  = getattr(self.hex_input, "_placeholder_text", "")
         return "" if raw == ph else raw
@@ -679,14 +677,14 @@ class HexForgeTool(tk.Tk):
     # Output rendering
 
     def _set_output(self, widget: tk.Text, text: str):
-        """Set text in disabled output widget."""
+        # Set text in disabled output widget
         widget.config(state="normal")
         widget.delete("1.0", "end")
         widget.insert("1.0", text)
         widget.config(state="disabled")
 
     def _render_outputs(self, result: list[int]):
-        """Render bytes to all three output panels."""
+        # Render bytes to all three output panels
         self._set_output(self.hex_out, bytes_to_hex(result))
         self._set_output(self.dec_out,
                          bytes_to_dec(result, self.T("dec_combined")))
@@ -696,7 +694,7 @@ class HexForgeTool(tk.Tk):
     # Status helper
 
     def _status(self, msg: str, colour: str = C["dim"]):
-        """Update status bar message and colour."""
+        # Update status bar message and colour
         self._status_colour = colour
         self.status_var.set(msg)
         self._status_lbl.config(fg=colour)
@@ -704,7 +702,7 @@ class HexForgeTool(tk.Tk):
     # Actions
 
     def _calculate(self):
-        """Perform hex calculation."""
+        # Perform hex calculation
         data = parse_hex(self._get_hex_input())
         if data is None:
             self._status(self.T("err_hex"), C["bad"])
@@ -736,7 +734,7 @@ class HexForgeTool(tk.Tk):
         )
 
     def _endian_swap(self):
-        """Perform endian swap on hex input."""
+        # Perform endian swap on hex input
         data = parse_hex(self._get_hex_input())
         if data is None:
             self._status(self.T("err_swap"), C["bad"])
@@ -753,7 +751,7 @@ class HexForgeTool(tk.Tk):
         self._status(self.T("status_endian", len(data)), C["accent2"])
 
     def _clear(self):
-        """Clear all inputs and outputs."""
+        # Clear all inputs and outputs
         self._last_result = None
 
         ph = self.T("placeholder")
@@ -776,7 +774,7 @@ class HexForgeTool(tk.Tk):
         self._status(self.T("status_cleared"), C["dim"])
 
     def _copy(self, attr: str):
-        """Copy output panel content to clipboard."""
+        # Copy output panel content to clipboard
         text = getattr(self, attr).get("1.0", "end-1c")
         self.clipboard_clear()
         self.clipboard_append(text)
