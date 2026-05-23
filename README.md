@@ -44,4 +44,5 @@ It provides quick utilities for:
 ```bash
 git clone https://github.com/sarkewww/HexKiln.git
 cd HexKiln
+pip install -r requirements.txt
 python main.py
